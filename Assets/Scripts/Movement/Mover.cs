@@ -1,5 +1,5 @@
-using RPG.Saving;
 using RPG.Core;
+using RPG.Saving;
 using UnityEngine;
 using UnityEngine.AI;
 using RPG.Attributes;
@@ -10,8 +10,6 @@ namespace RPG.Movement
     {
         [SerializeField] Transform target;
         [SerializeField] float maxSpeed = 6f;
-
-
 
         NavMeshAgent navMeshAgent;
         Health health;

@@ -1,9 +1,12 @@
 using System;
-using RPG.Attributes;
+using System.Collections;
+using System.Collections.Generic;
 using RPG.Combat;
 using RPG.Core;
 using RPG.Movement;
 using UnityEngine;
+using GameDevTV.Utils;
+using RPG.Attributes;
 
 namespace RPG.Control
 {
@@ -13,18 +16,18 @@ namespace RPG.Control
         [SerializeField] float suspicionTime = 3f;
         [SerializeField] PatrolPath patrolPath;
         [SerializeField] float waypointTolerance = 1f;
-        [SerializeField] float waypointDwellTime = 4f;
-        [Range(0f, 1f)]
+        [SerializeField] float waypointDwellTime = 3f;
+        [Range(0, 1)]
         [SerializeField] float patrolSpeedFraction = 0.2f;
 
         Fighter fighter;
-        GameObject player;
         Health health;
         Mover mover;
+        GameObject player;
 
-        Vector3 guardPosition;
+        LazyValue<Vector3> guardPosition;
         float timeSinceLastSawPlayer = Mathf.Infinity;
-        float timeSinceLastArrivedAtWaypoint = Mathf.Infinity;
+        float timeSinceArrivedAtWaypoint = Mathf.Infinity;
         int currentWaypointIndex = 0;
 
         private void Awake()
@@ -33,28 +36,34 @@ namespace RPG.Control
             health = GetComponent<Health>();
             mover = GetComponent<Mover>();
             player = GameObject.FindWithTag("Player");
+
+            guardPosition = new LazyValue<Vector3>(GetGuardPosition);
+        }
+
+        private Vector3 GetGuardPosition()
+        {
+            return transform.position;
         }
 
         private void Start()
         {
-            guardPosition = transform.position;
+            guardPosition.ForceInit();
         }
 
         private void Update()
         {
-            if (health.IsDead()) { return; }
+            if (health.IsDead()) return;
+
             if (InAttackRangeOfPlayer() && fighter.CanAttack(player))
-            {   // State where the AI is in range and can attack
+            {
                 AttackBehaviour();
-                // todo set chase speed here
             }
             else if (timeSinceLastSawPlayer < suspicionTime)
-            {   //Suspicion State
-                // todo set patrol speed here
+            {
                 SuspicionBehaviour();
             }
             else
-            {   // Back to the Guard or Patrol positions
+            {
                 PatrolBehaviour();
             }
 
@@ -64,28 +73,33 @@ namespace RPG.Control
         private void UpdateTimers()
         {
             timeSinceLastSawPlayer += Time.deltaTime;
-            timeSinceLastArrivedAtWaypoint += Time.deltaTime;
+            timeSinceArrivedAtWaypoint += Time.deltaTime;
         }
 
         private void PatrolBehaviour()
         {
-            Vector3 nextPosition = guardPosition;
+            Vector3 nextPosition = guardPosition.value;
 
             if (patrolPath != null)
-            {   // Guard position if the enemy doesn't have a Path to follow
+            {
                 if (AtWaypoint())
                 {
-                    timeSinceLastArrivedAtWaypoint = 0f;
+                    timeSinceArrivedAtWaypoint = 0;
                     CycleWaypoint();
                 }
                 nextPosition = GetCurrentWaypoint();
             }
-            if(timeSinceLastArrivedAtWaypoint > waypointDwellTime)
+
+            if (timeSinceArrivedAtWaypoint > waypointDwellTime)
             {
                 mover.StartMoveAction(nextPosition, patrolSpeedFraction);
-                //todo think about rotating the player when he gets back
             }
+        }
 
+        private bool AtWaypoint()
+        {
+            float distanceToWaypoint = Vector3.Distance(transform.position, GetCurrentWaypoint());
+            return distanceToWaypoint < waypointTolerance;
         }
 
         private void CycleWaypoint()
@@ -98,22 +112,14 @@ namespace RPG.Control
             return patrolPath.GetWaypoint(currentWaypointIndex);
         }
 
-        private bool AtWaypoint()
-        {
-            float distanceToWaypoint = Vector3.Distance(transform.position, GetCurrentWaypoint());
-            return distanceToWaypoint < waypointTolerance;
-        }
-
         private void SuspicionBehaviour()
         {
             GetComponent<ActionScheduler>().CancelCurrentAction();
-            //fighter.Cancel();
-
         }
 
         private void AttackBehaviour()
         {
-            timeSinceLastSawPlayer = 0f;
+            timeSinceLastSawPlayer = 0;
             fighter.Attack(player);
         }
 
@@ -123,8 +129,9 @@ namespace RPG.Control
             return distanceToPlayer < chaseDistance;
         }
 
+        // Called by Unity
         private void OnDrawGizmosSelected()
-        {   // called by unity
+        {
             Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(transform.position, chaseDistance);
         }
