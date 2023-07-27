@@ -91,6 +91,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 905595592, guid: 4ac9305ee36742840ad9ed8603b1806b, type: 3}
+      propertyPath: m_BaseOffset
+      value: -0.03
+      objectReference: {fileID: 0}
     - target: {fileID: 465823374318018308, guid: 4ac9305ee36742840ad9ed8603b1806b,
         type: 3}
       propertyPath: uniqueIdentifier
