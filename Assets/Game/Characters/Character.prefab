@@ -103,7 +103,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: -0.3
+  m_BaseOffset: -0.03
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!95 &905595598
@@ -153,6 +153,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3e1caaa34c8c21641b9e7770efdfbc82, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  cursorMappings: []
 --- !u!114 &3642424901490593585
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,7 +194,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 231c61ec64f313148a407ed4700c56c5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  healthPoints: 100
+  regenerationPercentage: 70
 --- !u!114 &465823374318018308
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -249,3 +250,5 @@ MonoBehaviour:
   startingLevel: 1
   characterClass: 1
   progression: {fileID: 11400000, guid: 3342d28b6c272624c852348d0c37e08f, type: 2}
+  levelUpParticleEffect: {fileID: 0}
+  shouldUseModifiers: 0

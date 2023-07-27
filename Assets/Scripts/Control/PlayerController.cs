@@ -9,15 +9,11 @@ namespace RPG.Control
 {
     public class PlayerController : MonoBehaviour
     {
-        Health health;
+        // Cursor Flicker and FPS Bug Fix
+        private CursorMapping _cachedCursorMapping;
+        // End of Cursor Flicker and FPS Bug Fix
 
-        enum CursorType
-        {
-            None,
-            Movement,
-            Combat,
-            UI
-        }
+        Health health;
 
         [System.Serializable]
         struct CursorMapping
@@ -60,7 +56,7 @@ namespace RPG.Control
 
         private bool InteractWithComponent()
         {
-            RaycastHit[] hits = Physics.RaycastAll(GetMouseRay());
+            RaycastHit[] hits = RaycastAllSorted();
             foreach (RaycastHit hit in hits)
             {
                 IRaycastable[] raycastables = hit.transform.GetComponents<IRaycastable>();
@@ -68,12 +64,24 @@ namespace RPG.Control
                 {
                     if (raycastable.HandleRaycast(this))
                     {
-                        SetCursor(CursorType.Combat);
+                        SetCursor(raycastable.GetCursorType());
                         return true;
                     }
                 }
             }
             return false;
+        }
+
+        RaycastHit[] RaycastAllSorted()
+        {
+            RaycastHit[] hits = Physics.RaycastAll(GetMouseRay());
+            float[] distances = new float[hits.Length];
+            for (int i = 0; i < hits.Length; i++)
+            {
+                distances[i] = hits[i].distance;
+            }
+            Array.Sort(distances, hits);
+            return hits;
         }
 
         private bool InteractWithMovement()
@@ -94,8 +102,12 @@ namespace RPG.Control
 
         private void SetCursor(CursorType type)
         {
-            CursorMapping mapping = GetCursorMapping(type);
-            Cursor.SetCursor(mapping.texture, mapping.hotspot, CursorMode.Auto);
+            // Cursor Flicker and FPS Bug Fix
+            if (_cachedCursorMapping.type == type) return;
+            _cachedCursorMapping = GetCursorMapping(type);
+            Cursor.SetCursor(_cachedCursorMapping.texture,
+                _cachedCursorMapping.hotspot, CursorMode.Auto);
+            // End of Cursor Flicker and FPS Bug Fix
         }
 
         private CursorMapping GetCursorMapping(CursorType type)
