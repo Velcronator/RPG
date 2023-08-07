@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 using RPG.Saving;
+using RPG.Control;
 
 namespace RPG.SceneManagement
 {
@@ -36,36 +37,36 @@ namespace RPG.SceneManagement
                 Debug.LogError("Scene is not set."); 
                 yield break; 
             }
-            // This portal
+
             DontDestroyOnLoad(gameObject);
-            // find the persistent fader
+
             Fader fader = FindObjectOfType<Fader>();
-            // Fade out
+            SavingWrapper savingWrapper = FindObjectOfType<SavingWrapper>();
+            PlayerController playerController = GameObject.FindWithTag("Player").GetComponent<PlayerController>();
+            playerController.enabled = false;
+
             yield return fader.FadeOut(fadeOutTime);
 
-            // Save Current Level
-            SavingWrapper savingWrapper = FindObjectOfType<SavingWrapper>();
             savingWrapper.Save();
 
-            // New Scene
             yield return SceneManager.LoadSceneAsync(sceneToLoad);
+            PlayerController newPlayerController = GameObject.FindWithTag("Player").GetComponent<PlayerController>();
+            newPlayerController.enabled = false;
 
-            // Load Current Level
             savingWrapper.Load();
 
-            // Move player to new position
             Portal otherPortal = GetOtherPortal();
             UpdatePlayer(otherPortal);
 
-            // Another save to eliminate portal swapping
             savingWrapper.Save();
 
-            // wait a bit them fade in
             yield return new WaitForSeconds(fadeWaitTime);
-            yield return fader.FadeIn(fadeInTime);
+            fader.FadeIn(fadeInTime);
 
+            newPlayerController.enabled = true;
             Destroy(gameObject);
         }
+
         private void UpdatePlayer(Portal otherPortal)
         {
             GameObject player = GameObject.FindGameObjectWithTag("Player");
