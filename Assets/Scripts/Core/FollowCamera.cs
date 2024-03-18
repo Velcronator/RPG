@@ -10,5 +10,7 @@ namespace RPG.Core
         {
             transform.position = target.position;
         }
+
+
     }
 }
