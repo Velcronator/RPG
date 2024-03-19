@@ -8,7 +8,7 @@ namespace RPG.Combat
     {
         public void OnHit()
         {
-            print("You hit something");
+            print("Weapon hit" + gameObject.name);
         }
     }
 }
