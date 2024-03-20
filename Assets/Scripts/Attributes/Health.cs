@@ -133,6 +133,5 @@ namespace RPG.Attributes
             }
         }
 
-
     }
 }
